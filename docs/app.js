@@ -355,7 +355,7 @@ function setupSocket() {
   const url = BACKEND_URL || window.location.origin;
 
   try {
-    socket = io(url, { reconnectionAttempts: 5, timeout: 5000 });
+    socket = io(url);
   } catch (err) {
     setOffline();
     return;
@@ -363,14 +363,18 @@ function setupSocket() {
 
   socket.on('connect', () => {
     connected = true;
+    document.getElementById('visitor-label').innerHTML = 'DEGENERATE<span id="plural">S</span><br>IN HERE';
   });
 
   socket.on('connect_error', () => {
     connected = false;
-    setOffline();
+    document.getElementById('count').textContent = '…';
   });
 
   socket.on('init', ({ strokes, stickers }) => {
+    // Clear and reload so reconnects don't duplicate marks
+    allStrokes.length = 0;
+    allStickers.length = 0;
     allStrokes.push(...(strokes || []));
     allStickers.push(...(stickers || []));
     rerenderAll();
