@@ -2,7 +2,7 @@
 // After deploying on Render, paste your Render URL here, e.g.:
 //   const BACKEND_URL = 'https://the-void.onrender.com';
 // Leave as empty string to auto-connect (works for local dev).
-const BACKEND_URL = '';
+const BACKEND_URL = 'https://the-void-6o9u.onrender.com';
 
 // Virtual canvas dimensions — all coordinates stored in this space
 // so strokes look consistent across different screen sizes
