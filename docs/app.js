@@ -47,7 +47,6 @@ const allStickers = [];
 
 // ── Socket ─────────────────────────────────────────────────
 let socket;
-let connected = false;
 
 // ── Coordinate helpers ─────────────────────────────────────
 function tx(vx) { return vx * canvasW / VIRT_W; }
@@ -281,7 +280,7 @@ function onUp() {
 
   renderStroke(bgCtx, activeStroke);
   allStrokes.push(activeStroke);
-  if (connected) socket.emit('stroke', activeStroke);
+  socket.emit('stroke', activeStroke);
 
   drawCtx.clearRect(0, 0, canvasW, canvasH);
   activeStroke = null;
@@ -330,7 +329,7 @@ function placeSticker(vpos) {
 
   renderSticker(bgCtx, sticker);
   allStickers.push(sticker);
-  if (connected) socket.emit('sticker', sticker);
+  socket.emit('sticker', sticker);
   drawCtx.clearRect(0, 0, canvasW, canvasH);
 }
 
@@ -361,13 +360,7 @@ function setupSocket() {
     return;
   }
 
-  socket.on('connect', () => {
-    connected = true;
-    document.getElementById('visitor-label').innerHTML = 'DEGENERATE<span id="plural">S</span><br>IN HERE';
-  });
-
   socket.on('connect_error', () => {
-    connected = false;
     document.getElementById('count').textContent = '…';
   });
 
