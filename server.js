@@ -6,7 +6,17 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: [
+      'https://pmartin5-gif.github.io',
+      'https://carolynz.github.io',
+      'http://localhost:3000',
+      'http://localhost:4444',
+    ],
+    methods: ['GET', 'POST'],
+  },
+});
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 let state = { strokes: [], stickers: [] };
@@ -23,7 +33,7 @@ function save() {
   fs.writeFileSync(DATA_FILE, JSON.stringify(state));
 }
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'docs')));
 
 io.on('connection', (socket) => {
   const count = io.engine.clientsCount;

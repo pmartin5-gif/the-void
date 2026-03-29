@@ -1,3 +1,9 @@
+// ── Backend URL ────────────────────────────────────────────
+// After deploying on Render, paste your Render URL here, e.g.:
+//   const BACKEND_URL = 'https://the-void.onrender.com';
+// Leave as empty string to auto-connect (works for local dev).
+const BACKEND_URL = '';
+
 // Virtual canvas dimensions — all coordinates stored in this space
 // so strokes look consistent across different screen sizes
 const VIRT_W = 1920;
@@ -29,7 +35,7 @@ let currentSize  = 'M';
 let drawing      = false;
 let activeStroke = null;
 let lastPoint    = null;
-let sprayIdx     = 0;     // increments per spray puff; seed for determinism
+let sprayIdx     = 0;
 
 let stickerText  = '';
 let stickerStyle = 'tag';
@@ -41,6 +47,7 @@ const allStickers = [];
 
 // ── Socket ─────────────────────────────────────────────────
 let socket;
+let connected = false;
 
 // ── Coordinate helpers ─────────────────────────────────────
 function tx(vx) { return vx * canvasW / VIRT_W; }
@@ -147,14 +154,12 @@ function renderSticker(ctx, sticker) {
     ctx.fillStyle = color;
     ctx.fillText(text, 0, 0);
   } else {
-    // Label / sticker style — old tape look
     const f = `bold ${fontSize * 0.78}px 'Arial Black', Impact, sans-serif`;
     ctx.font = f;
     const tw  = ctx.measureText(text).width;
     const th  = fontSize * 0.85;
     const pad = fontSize * 0.28;
 
-    // Tape/label background (slightly yellowed)
     ctx.globalAlpha = 0.95;
     ctx.fillStyle = '#f5eecc';
     roundRect(ctx, -tw / 2 - pad, -th / 2 - pad, tw + pad * 2, th + pad * 2, 3);
@@ -198,7 +203,6 @@ function updateStickerPreview() {
   drawCtx.clearRect(0, 0, canvasW, canvasH);
   if (!stickerText.trim() || !cursorVirt) return;
 
-  // Use a temporary canvas so we can apply globalAlpha over the whole sticker
   const tmp = document.createElement('canvas');
   tmp.width  = canvasW;
   tmp.height = canvasH;
@@ -255,7 +259,6 @@ function onMove(e) {
 
   if (!drawing || !activeStroke) return;
 
-  // Minimum travel before capturing point (virtual pixels)
   const minDist = currentTool === 'spray' ? 4 : 3;
   const dx = pos.x - lastPoint.x;
   const dy = pos.y - lastPoint.y;
@@ -267,10 +270,8 @@ function onMove(e) {
   if (currentTool === 'spray') {
     renderSprayPuff(drawCtx, pos, currentSize, currentColor, sprayIdx++);
   } else {
-    // Incremental draw: just add the last segment to drawCanvas
     const pts = activeStroke.points;
-    const i   = pts.length - 2;
-    drawSegment(drawCtx, activeStroke, i);
+    drawSegment(drawCtx, activeStroke, pts.length - 2);
   }
 }
 
@@ -280,13 +281,12 @@ function onUp() {
 
   renderStroke(bgCtx, activeStroke);
   allStrokes.push(activeStroke);
-  socket.emit('stroke', activeStroke);
+  if (connected) socket.emit('stroke', activeStroke);
 
   drawCtx.clearRect(0, 0, canvasW, canvasH);
   activeStroke = null;
 }
 
-// Draw one segment of an in-progress stroke on drawCanvas
 function drawSegment(ctx, stroke, fromIdx) {
   const { points, color, sizeKey, tool } = stroke;
   if (fromIdx >= points.length - 1) return;
@@ -325,12 +325,12 @@ function placeSticker(vpos) {
     sizeKey:  currentSize,
     x:        vpos.x,
     y:        vpos.y,
-    rotation: (Math.random() - 0.5) * 36, // -18° to +18°
+    rotation: (Math.random() - 0.5) * 36,
   };
 
   renderSticker(bgCtx, sticker);
   allStickers.push(sticker);
-  socket.emit('sticker', sticker);
+  if (connected) socket.emit('sticker', sticker);
   drawCtx.clearRect(0, 0, canvasW, canvasH);
 }
 
@@ -352,7 +352,23 @@ function resizeCanvases() {
 // ── Socket setup ───────────────────────────────────────────
 
 function setupSocket() {
-  socket = io();
+  const url = BACKEND_URL || window.location.origin;
+
+  try {
+    socket = io(url, { reconnectionAttempts: 5, timeout: 5000 });
+  } catch (err) {
+    setOffline();
+    return;
+  }
+
+  socket.on('connect', () => {
+    connected = true;
+  });
+
+  socket.on('connect_error', () => {
+    connected = false;
+    setOffline();
+  });
 
   socket.on('init', ({ strokes, stickers }) => {
     allStrokes.push(...(strokes || []));
@@ -376,10 +392,14 @@ function setupSocket() {
   });
 }
 
+function setOffline() {
+  document.getElementById('count').textContent = '?';
+  document.getElementById('visitor-label').innerHTML = 'OFFLINE<br>MODE';
+}
+
 // ── Toolbar setup ──────────────────────────────────────────
 
 function setupToolbar() {
-  // Tool buttons
   document.querySelectorAll('.tool-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
@@ -394,7 +414,6 @@ function setupToolbar() {
     });
   });
 
-  // Color swatches
   document.querySelectorAll('.color-swatch').forEach(sw => {
     sw.addEventListener('click', () => {
       document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
@@ -404,7 +423,6 @@ function setupToolbar() {
     });
   });
 
-  // Size buttons
   document.querySelectorAll('.size-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
@@ -414,25 +432,21 @@ function setupToolbar() {
     });
   });
 
-  // Sticker text input
   const stickerInput = document.getElementById('sticker-text');
   stickerInput.addEventListener('input', () => {
     stickerText = stickerInput.value;
     updateStickerPreview();
   });
 
-  // Sticker style select
   document.getElementById('sticker-style').addEventListener('change', (e) => {
     stickerStyle = e.target.value;
     updateStickerPreview();
   });
 
-  // Preset buttons
   document.querySelectorAll('.preset-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       stickerInput.value = btn.dataset.text;
       stickerText = btn.dataset.text;
-      // Auto-switch to sticker tool
       if (currentTool !== 'sticker') {
         document.querySelectorAll('.tool-btn').forEach(b => {
           b.classList.toggle('active', b.dataset.tool === 'sticker');
@@ -468,13 +482,11 @@ function init() {
   resizeCanvases();
   window.addEventListener('resize', resizeCanvases);
 
-  // Mouse events
   drawCanvas.addEventListener('mousedown', onDown);
   drawCanvas.addEventListener('mousemove', onMove);
   drawCanvas.addEventListener('mouseup',   onUp);
   drawCanvas.addEventListener('mouseleave', onUp);
 
-  // Touch events
   drawCanvas.addEventListener('touchstart', e => { e.preventDefault(); onDown(e); }, { passive: false });
   drawCanvas.addEventListener('touchmove',  e => { e.preventDefault(); onMove(e); }, { passive: false });
   drawCanvas.addEventListener('touchend',   e => { e.preventDefault(); onUp();    });

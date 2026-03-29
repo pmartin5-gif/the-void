@@ -76,12 +76,13 @@
     </div>
 
     <div id="visitor-wrap">
-      <span id="count">1</span>
+      <span id="count">—</span>
       <span id="visitor-label">DEGENERATE<span id="plural">S</span><br>IN HERE</span>
     </div>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
+  <!-- Socket.io from CDN so this page works hosted anywhere (GitHub Pages, etc.) -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
   <script src="app.js"></script>
 </body>
 </html>
