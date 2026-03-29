@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>THE VOID — Bathroom Wall</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- The bathroom wall -->
+  <div id="wall-container">
+    <canvas id="bg-canvas"></canvas>
+    <canvas id="draw-canvas"></canvas>
+    <div id="grain"></div>
+    <div id="sign">THE VOID<span id="sign-sub">restroom · est. tonight</span></div>
+    <div id="flicker"></div>
+  </div>
+
+  <!-- Toolbar -->
+  <div id="toolbar">
+    <div id="bar-name">THE<br>VOID</div>
+
+    <div class="sep"></div>
+
+    <div id="tools">
+      <button class="tool-btn active" data-tool="marker" title="Marker tag">MARKER</button>
+      <button class="tool-btn" data-tool="thick" title="Fat marker">FAT</button>
+      <button class="tool-btn" data-tool="spray" title="Spray paint">SPRAY</button>
+      <button class="tool-btn" data-tool="sticker" title="Text sticker">STICKER</button>
+      <button class="tool-btn eraser-btn" data-tool="eraser" title="Eraser">ERASE</button>
+    </div>
+
+    <div class="sep"></div>
+
+    <div id="colors">
+      <div class="color-swatch active" data-color="#111111" style="background:#111111" title="Black"></div>
+      <div class="color-swatch" data-color="#f5f5f5" style="background:#f5f5f5;border-color:#888" title="White"></div>
+      <div class="color-swatch" data-color="#e8001e" style="background:#e8001e" title="Red"></div>
+      <div class="color-swatch" data-color="#0057ff" style="background:#0057ff" title="Blue"></div>
+      <div class="color-swatch" data-color="#ffd600" style="background:#ffd600" title="Yellow"></div>
+      <div class="color-swatch" data-color="#00c44f" style="background:#00c44f" title="Green"></div>
+      <div class="color-swatch" data-color="#ff6a00" style="background:#ff6a00" title="Orange"></div>
+      <div class="color-swatch" data-color="#cc00cc" style="background:#cc00cc" title="Purple"></div>
+      <div class="color-swatch" data-color="#c0c0c0" style="background:#c0c0c0" title="Silver"></div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div id="sizes">
+      <button class="size-btn" data-size="S">S</button>
+      <button class="size-btn active" data-size="M">M</button>
+      <button class="size-btn" data-size="L">L</button>
+    </div>
+
+    <!-- Sticker panel (shown when STICKER tool active) -->
+    <div id="sticker-panel">
+      <select id="sticker-style">
+        <option value="tag">TAG</option>
+        <option value="bubble">LABEL</option>
+      </select>
+      <input type="text" id="sticker-text" placeholder="WRITE SOMETHING..." maxlength="35" autocomplete="off">
+      <div id="presets">
+        <button class="preset-btn" data-text="NO FUTURE">NO FUTURE</button>
+        <button class="preset-btn" data-text="Ⓐ">Ⓐ</button>
+        <button class="preset-btn" data-text="☠">☠</button>
+        <button class="preset-btn" data-text="⚡">⚡</button>
+        <button class="preset-btn" data-text="✊">✊</button>
+        <button class="preset-btn" data-text="DIY">DIY</button>
+        <button class="preset-btn" data-text="★">★</button>
+      </div>
+      <div id="sticker-hint">👆 click wall to place</div>
+    </div>
+
+    <div id="visitor-wrap">
+      <span id="count">1</span>
+      <span id="visitor-label">DEGENERATE<span id="plural">S</span><br>IN HERE</span>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&family=VT323&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --toolbar-h: 68px;
+  --red: #e8001e;
+  --dark: #0e0e0e;
+  --mid: #1c1c1c;
+}
+
+body {
+  background: var(--dark);
+  overflow: hidden;
+  font-family: 'Permanent Marker', cursive;
+  user-select: none;
+}
+
+/* ─── WALL ─────────────────────────────────────────────── */
+#wall-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--toolbar-h);
+  overflow: hidden;
+
+  /* Dirty bathroom tile — green/gray base with grout */
+  background-color: #3a3d36;
+  background-image:
+    /* Horizontal grout lines */
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 77px,
+      rgba(0,0,0,0.55) 77px,
+      rgba(0,0,0,0.55) 80px
+    ),
+    /* Vertical grout lines */
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 77px,
+      rgba(0,0,0,0.55) 77px,
+      rgba(0,0,0,0.55) 80px
+    ),
+    /* Subtle tile color variation */
+    repeating-linear-gradient(
+      135deg,
+      transparent 0px,
+      transparent 56px,
+      rgba(255,255,255,0.012) 56px,
+      rgba(255,255,255,0.012) 112px
+    );
+
+  /* Water-damage / stain blotches */
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0, transparent 77px, rgba(0,0,0,.55) 77px, rgba(0,0,0,.55) 80px),
+    repeating-linear-gradient(90deg, transparent 0, transparent 77px, rgba(0,0,0,.55) 77px, rgba(0,0,0,.55) 80px);
+}
+
+/* Stain layer */
+#wall-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 280px 180px at 12% 25%, rgba(110,70,20,0.09) 0%, transparent 100%),
+    radial-gradient(ellipse 200px 350px at 78% 55%, rgba(80,60,30,0.07) 0%, transparent 100%),
+    radial-gradient(ellipse 450px 120px at 45% 88%, rgba(60,50,20,0.1) 0%, transparent 100%),
+    radial-gradient(ellipse 150px 200px at 90% 10%, rgba(90,70,40,0.06) 0%, transparent 100%);
+  z-index: 1;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+#draw-canvas {
+  z-index: 3;
+  cursor: crosshair;
+}
+
+/* Grain / film noise overlay */
+#grain {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+}
+
+/* Fluorescent flicker vignette */
+#flicker {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(ellipse 120% 120% at 50% -10%, transparent 60%, rgba(0,0,0,0.35) 100%);
+  animation: flicker 8s infinite;
+}
+
+@keyframes flicker {
+  0%, 94%, 96%, 98%, 100% { opacity: 1; }
+  95% { opacity: 0.85; }
+  97% { opacity: 0.9; }
+  99% { opacity: 0.82; }
+}
+
+/* The bathroom sign */
+#sign {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  z-index: 6;
+  pointer-events: none;
+  background: rgba(0,0,0,0.6);
+  border: 2px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.35);
+  font-family: 'VT323', monospace;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  text-align: center;
+  line-height: 1.3;
+}
+
+#sign-sub {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.2);
+}
+
+/* ─── TOOLBAR ───────────────────────────────────────────── */
+#toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--toolbar-h);
+  background: rgba(8, 8, 8, 0.97);
+  border-top: 2px solid var(--red);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+#toolbar::-webkit-scrollbar { display: none; }
+
+.sep {
+  width: 1px;
+  height: 36px;
+  background: #333;
+  flex-shrink: 0;
+}
+
+#bar-name {
+  font-family: 'Permanent Marker', cursive;
+  color: var(--red);
+  font-size: 15px;
+  line-height: 1.1;
+  text-shadow: 0 0 16px rgba(232,0,30,0.6);
+  flex-shrink: 0;
+  letter-spacing: 1px;
+}
+
+/* Tools */
+#tools {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.tool-btn {
+  background: transparent;
+  border: 1.5px solid #3a3a3a;
+  color: #666;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-family: 'Permanent Marker', cursive;
+  font-size: 13px;
+  border-radius: 2px;
+  transition: all 0.1s;
+  white-space: nowrap;
+}
+
+.tool-btn:hover {
+  border-color: #666;
+  color: #aaa;
+}
+
+.tool-btn.active {
+  border-color: var(--red);
+  color: #fff;
+  background: rgba(232,0,30,0.12);
+  text-shadow: 0 0 8px rgba(232,0,30,0.5);
+}
+
+.eraser-btn.active {
+  border-color: #888;
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+  text-shadow: none;
+}
+
+/* Colors */
+#colors {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #444;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s;
+  flex-shrink: 0;
+}
+
+.color-swatch:hover { transform: scale(1.25); }
+
+.color-swatch.active {
+  transform: scale(1.3);
+  border-color: #fff;
+  box-shadow: 0 0 6px rgba(255,255,255,0.4);
+}
+
+/* Sizes */
+#sizes {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.size-btn {
+  background: transparent;
+  border: 1.5px solid #3a3a3a;
+  color: #666;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-family: 'Permanent Marker', cursive;
+  font-size: 13px;
+  border-radius: 2px;
+  transition: all 0.1s;
+}
+
+.size-btn:hover { border-color: #555; color: #aaa; }
+
+.size-btn.active {
+  border-color: var(--red);
+  color: #fff;
+  background: rgba(232,0,30,0.12);
+}
+
+/* Sticker panel */
+#sticker-panel {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+#sticker-style {
+  background: #1a1a1a;
+  border: 1.5px solid #444;
+  color: #bbb;
+  padding: 4px 6px;
+  font-family: 'Permanent Marker', cursive;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+#sticker-text {
+  background: #111;
+  border: 1.5px solid var(--red);
+  color: #fff;
+  padding: 5px 10px;
+  font-family: 'Permanent Marker', cursive;
+  font-size: 15px;
+  width: 180px;
+  border-radius: 2px;
+  outline: none;
+}
+
+#sticker-text::placeholder { color: #444; }
+
+#sticker-text:focus { border-color: #ff6060; box-shadow: 0 0 8px rgba(232,0,30,0.3); }
+
+#presets {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.preset-btn {
+  background: #1a1a1a;
+  border: 1.5px solid #333;
+  color: #999;
+  padding: 3px 7px;
+  cursor: pointer;
+  font-family: 'Permanent Marker', cursive;
+  font-size: 11px;
+  border-radius: 2px;
+  transition: all 0.1s;
+  white-space: nowrap;
+}
+
+.preset-btn:hover {
+  border-color: var(--red);
+  color: #fff;
+}
+
+#sticker-hint {
+  color: #555;
+  font-family: 'VT323', monospace;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* Visitor count */
+#visitor-wrap {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+#count {
+  font-family: 'VT323', monospace;
+  font-size: 36px;
+  color: #44ff44;
+  text-shadow: 0 0 12px rgba(68,255,68,0.6);
+  line-height: 1;
+}
+
+#visitor-label {
+  font-family: 'VT323', monospace;
+  font-size: 12px;
+  color: #444;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
